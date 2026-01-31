@@ -328,7 +328,7 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
     gallery_ids = sorted(gallery_embeddings.keys())
     gallery_matrix = torch.stack([gallery_embeddings[i] for i in gallery_ids]).to(device)
 
-    r
+    
     batch = next(iter(test_loader))
     images = batch['image'][:num_samples].to(device)
     true_labels = batch['label'][:num_samples].cpu().numpy()
