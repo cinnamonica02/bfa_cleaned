@@ -1,0 +1,21 @@
+{
+  "version": "V2_embedding_based",
+  "baseline": {
+    "accuracy": 0.9981981981981982,
+    "identity_confusion_rate": 0.0018018018018018018,
+    "misidentified_count": 1,
+    "total_samples": 555
+  },
+  "attack": {
+    "accuracy": 0.8990990990990991,
+    "identity_confusion_rate": 0.1009009009009009,
+    "misidentified_count": 56,
+    "total_samples": 555,
+    "bits_flipped": 8,
+    "bit_efficiency": 0.012612612612612612
+  },
+  "improvement": {
+    "accuracy_drop": 0.09909909909909909,
+    "icr_increase": 0.0990990990990991
+  }
+}

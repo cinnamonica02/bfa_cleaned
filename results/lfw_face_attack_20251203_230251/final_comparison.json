@@ -1,0 +1,78 @@
+{
+  "before_attack": {
+    "accuracy": 0.9670027497708524,
+    "face_recall": 0.9395235186316433,
+    "privacy_leak_rate": 0.06047648136835675,
+    "faces_missed": 99,
+    "total_faces": 1637
+  },
+  "after_attack": {
+    "accuracy": 0.9297280782157042,
+    "face_recall": 0.8601099572388515,
+    "privacy_leak_rate": 0.13989004276114844,
+    "faces_missed": 229,
+    "total_faces": 1637
+  },
+  "attack_summary": {
+    "original_accuracy": 0.9654750992972808,
+    "final_accuracy": 0.9340054995417049,
+    "accuracy_drop": 0.03146959975557595,
+    "initial_asr": 0.5300947143293614,
+    "final_asr": 0.5627864344637947,
+    "asr_improvement": 0.03269172013443333,
+    "bits_flipped": 7,
+    "flipped_bits": [
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(49), np.int64(2), np.int64(2), np.int64(0))",
+        "Bit Position": 24,
+        "Original Value": -0.21685650944709778,
+        "New Value": -0.8674260377883911
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(29), np.int64(0), np.int64(1), np.int64(2))",
+        "Bit Position": 25,
+        "Original Value": 0.17721600830554962,
+        "New Value": 0.011076000519096851
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(33), np.int64(1), np.int64(0), np.int64(0))",
+        "Bit Position": 31,
+        "Original Value": -0.16348575055599213,
+        "New Value": 0.16348575055599213
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(24), np.int64(2), np.int64(0), np.int64(2))",
+        "Bit Position": 31,
+        "Original Value": -0.11096019297838211,
+        "New Value": 0.11096019297838211
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(55), np.int64(1), np.int64(2), np.int64(2))",
+        "Bit Position": 27,
+        "Original Value": 0.122187539935112,
+        "New Value": 1.864433897935669e-06
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(19), np.int64(2), np.int64(1), np.int64(1))",
+        "Bit Position": 29,
+        "Original Value": 0.06643954664468765,
+        "New Value": 3.601695040556118e-21
+      },
+      {
+        "Layer": "resnet.conv1",
+        "Parameter": "(np.int64(44), np.int64(0), np.int64(0), np.int64(1))",
+        "Bit Position": 27,
+        "Original Value": 0.06844241172075272,
+        "New Value": 1.0443483233757433e-06
+      }
+    ],
+    "target_class": 0,
+    "execution_time": 522.0077092647552
+  }
+}

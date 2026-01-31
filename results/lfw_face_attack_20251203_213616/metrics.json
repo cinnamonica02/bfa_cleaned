@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "accuracy": 0.9670027497708524,
+    "face_recall": 0.9395235186316433,
+    "privacy_leak_rate": 0.06047648136835675,
+    "faces_missed": 99,
+    "total_faces": 1637
+  },
+  "quantized": {
+    "accuracy": 0.9654750992972808,
+    "face_recall": 0.9328039095907147,
+    "privacy_leak_rate": 0.06719609040928527,
+    "faces_missed": 110,
+    "total_faces": 1637
+  },
+  "model": "ResNet-32",
+  "dataset": "LFW + CIFAR-10",
+  "quantization": "8-bit",
+  "timestamp": "20251203_213616"
+}

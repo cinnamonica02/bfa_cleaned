@@ -1,0 +1,50 @@
+{
+  "experiment_info": {
+    "dataset": "pneumoniamnist",
+    "model": "ResNet34",
+    "timestamp": "20260127_135041",
+    "attack_type": "u-\u03bcP Bit-Flip Attack",
+    "config": {
+      "dataset": "pneumoniamnist",
+      "binary_classification": true,
+      "batch_size": 64,
+      "img_size": 224,
+      "epochs": 15,
+      "learning_rate": 0.001,
+      "target_accuracy": 0.8,
+      "max_accuracy": 0.85,
+      "max_bit_flips": 15,
+      "num_candidates": 2000,
+      "population_size": 50,
+      "generations": 20,
+      "target_asr": 0.7,
+      "accuracy_threshold": 0.04
+    }
+  },
+  "baseline_metrics": {
+    "accuracy": 0.8894230769230769,
+    "disease_recall": 0.8615384615384616,
+    "false_negative_rate": 0.13846153846153847,
+    "diseases_missed": 54.0,
+    "total_diseases": 390.0,
+    "false_alarms": 15.0,
+    "total_normal": 234.0
+  },
+  "attack_metrics": {
+    "accuracy": 0.8493589743589743,
+    "disease_recall": 0.7846153846153846,
+    "false_negative_rate": 0.2153846153846154,
+    "diseases_missed": 84.0,
+    "total_diseases": 390.0,
+    "false_alarms": 10.0,
+    "total_normal": 234.0
+  },
+  "attack_info": {
+    "bits_flipped": 5,
+    "original_accuracy": 0.8894230769230769,
+    "final_accuracy": 0.8493589743589743,
+    "fnr_increase": 0.07692307692307693,
+    "additional_diseases_missed": 30,
+    "accuracy_drop": 0.04006410256410253
+  }
+}

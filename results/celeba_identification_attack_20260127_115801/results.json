@@ -1,0 +1,21 @@
+{
+  "dataset": "CelebA",
+  "baseline": {
+    "accuracy": 0.9805194805194806,
+    "identity_confusion_rate": 0.01948051948051948,
+    "misidentified_count": 6,
+    "total_samples": 308
+  },
+  "attack": {
+    "accuracy": 0.8831168831168831,
+    "identity_confusion_rate": 0.11688311688311688,
+    "misidentified_count": 36,
+    "total_samples": 308,
+    "bits_flipped": 8,
+    "bit_efficiency": 0.01461038961038961
+  },
+  "improvement": {
+    "accuracy_drop": 0.09740259740259749,
+    "icr_increase": 0.09740259740259741
+  }
+}
