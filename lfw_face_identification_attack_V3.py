@@ -346,8 +346,7 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
         baseline_sims = similarities.max(dim=1)[0].cpu().numpy()
 
     logging.info(f" Captured baseline predictions for {num_samples} samples")
-    logging.info(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl 
-                                                    in zip(baseline_preds, true_labels))}/{num_samples}")
+    logging.info(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
     logging.info(f"{'='*70}\n")
 
     return {
