@@ -498,7 +498,7 @@ def main():
     logger.info(f"Current FNR: {100*baseline_metrics['false_negative_rate']:.2f}%")
     logger.info(f"Target: ~{100*CONFIG['target_asr']:.0f}% FNR")
     logger.info(f"Max bit flips: {CONFIG['max_bit_flips']}")
-    logger.info()
+    print()
 
 
     attack = UmupBitFlipAttack(
