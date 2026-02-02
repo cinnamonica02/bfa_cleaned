@@ -99,7 +99,7 @@ class MedMNISTDataset(Dataset):
         self.binary = binary
         self.dataset_name = dataset_name
 
-        logger.info(f"Loading MedMNIST dataset: {dataset_name} ({split})")
+        print(f"Loading MedMNIST dataset: {dataset_name} ({split})")
 
 
 
@@ -118,22 +118,22 @@ class MedMNISTDataset(Dataset):
         self.task = info['task']
         self.n_channels = info['n_channels']
 
-        logger.info(f" Loaded {len(self.dataset)} images")
-        logger.info(f" Task: {self.task}")
-        logger.info(f" Channels: {self.n_channels}")
-        logger.info(f" Original classes: {self.n_classes}")
+        print(f" Loaded {len(self.dataset)} images")
+        print(f" Task: {self.task}")
+        print(f" Channels: {self.n_channels}")
+        print(f" Original classes: {self.n_classes}")
 
 
         all_labels = [self.dataset[i][1].item() for i in range(len(self.dataset))]
         unique, counts = np.unique(all_labels, return_counts=True)
-        logger.info(f"  Label distribution: {dict(zip(unique, counts))}")
+        print(f"  Label distribution: {dict(zip(unique, counts))}")
 
 
         if binary and self.n_classes > 2:
-            logger.info(f"  Converting to binary: class 0 vs rest")
+            print(f"Converting to binary: class 0 vs rest")
             self.binary_strategy = 'zero_vs_rest'
         elif binary and self.n_classes == 2:
-            logger.info(f"  Already binary: using as-is")
+            print(f"Already binary: using as-is")
             self.binary_strategy = 'native_binary'
         else:
             self.binary_strategy = None
@@ -192,14 +192,14 @@ def get_transform(img_size=224, n_channels=3, split='train'):
 def create_medical_dataloaders(dataset_name='pneumoniamnist',
                             batch_size=64, img_size=224, binary=True):
     
-    logger.info("\n" + "="*70)
-    logger.info("Creating Medical Imaging Dataset (MedMNIST)")
-    logger.info("="*70)
-    logger.info(f"Dataset: {dataset_name}")
-    logger.info(f"Image size: {img_size}x{img_size}")
-    logger.info(f"Binary classification: {binary}")
+    print("\n" + "="*70)
+    print("Creating Medical Imaging Dataset (MedMNIST)")
+    print("="*70)
+    print(f"Dataset: {dataset_name}")
+    print(f"Image size: {img_size}x{img_size}")
+    print(f"Binary classification: {binary}")
 
-    # Load a sample to get n_channels
+
     try:
         import medmnist
         from medmnist import INFO
@@ -225,8 +225,8 @@ def create_medical_dataloaders(dataset_name='pneumoniamnist',
         binary=binary
     )
 
-    print(f"\n✓ Train set: {len(train_dataset)} samples")
-    print(f"✓ Test set: {len(test_dataset)} samples")
+    print(f"\n Train set: {len(train_dataset)} samples")
+    print(f" Test set: {len(test_dataset)} samples")
     print("="*70 + "\n")
 
 
@@ -251,13 +251,15 @@ def train_medical_model(model, train_loader, test_loader, epochs=10,
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', patience=3, factor=0.5)
 
-    logger.info("\n" + "="*70)
-    logger.info("Training Medical Diagnostic Model")
-    logger.info("="*70)
-    logger.info(f"Target accuracy range: {100*target_accuracy:.0f}-{100*max_accuracy:.0f}% (realistic for attack)")
-    logger.info(f"Device: {device}")
-    logger.info(f"Epochs: {epochs}")
-    logger.info(f"Learning rate: {learning_rate}")
+
+
+    print("\n" + "="*70)
+    print("Training Medical Diagnostic Model")
+    print("="*70)
+    print(f"Target accuracy range: {100*target_accuracy:.0f}-{100*max_accuracy:.0f}% (realistic for attack)")
+    print(f"Device: {device}")
+    print(f"Epochs: {epochs}")
+    print(f"Learning rate: {learning_rate}")
     print()
 
     best_acc = 0.0
@@ -308,30 +310,32 @@ def train_medical_model(model, train_loader, test_loader, epochs=10,
         val_acc = val_correct / val_total
         disease_recall = positive_correct / positive_total if positive_total > 0 else 0
 
-        logger.info(f'Epoch {epoch+1}/{epochs}:')
-        logger.info(f'  Train Loss: {train_loss/len(train_loader):.3f} | Train Acc: {100*train_acc:.2f}%')
-        logger.info(f'  Val Acc: {100*val_acc:.2f}% | Disease Recall: {100*disease_recall:.2f}%')
+        print(f'Epoch {epoch+1}/{epochs}:')
+        print(f'Train Loss: {train_loss/len(train_loader):.3f} | Train Acc: {100*train_acc:.2f}%')
+        print(f'Val Acc: {100*val_acc:.2f}% | Disease Recall: {100*disease_recall:.2f}%')
+
+
 
         if val_acc >= max_accuracy:
-            logger.info(f"\n Stopping at {100*val_acc:.2f}% - max threshold for attackable model")
-            logger.info("  Higher accuracy = model too robust for bit-flip attack")
+            print(f"\n Stopping at {100*val_acc:.2f}% - max threshold for attackable model")
+            print("  Higher accuracy = model too robust for bit-flip attack")
             best_acc = val_acc
             break
         elif target_accuracy <= val_acc < max_accuracy:
-            logger.debug(f"\n Reached target accuracy range ({100*val_acc:.2f}%)")
-            logger.debug("Stopping to preserve decision boundaries for attack")
+            print(f"\n Reached target accuracy range ({100*val_acc:.2f}%)")
+            print("Stopping to preserve decision boundaries for attack")
             best_acc = val_acc
             break
 
         if val_acc > best_acc:
             best_acc = val_acc
-            logger.debug(f'New best accuracy: {100*best_acc:.2f}%')
+            print(f'New best accuracy: {100*best_acc:.2f}%')
 
         scheduler.step(val_acc)
         print()
 
-    logger.info(f"Training complete. Best accuracy: {100*best_acc:.2f}%")
-    logger.info("="*70 + "\n")
+    print(f"Training complete. Best accuracy: {100*best_acc:.2f}%")
+    print("="*70 + "\n")
 
     return model, best_acc
 
@@ -383,16 +387,16 @@ def evaluate_medical_model(model, test_loader, device='cuda'):
 
 
 
-    logger.info("\n" + "="*70)
-    logger.info("Medical Model Evaluation")
-    logger.info("="*70)
-    logger.info(f"Overall Accuracy: {100*accuracy:.2f}%")
-    logger.info(f"Disease Detection Rate (Sensitivity/Recall): {100*disease_recall:.2f}%")
-    logger.info(f"FALSE NEGATIVE RATE: {100*false_negative_rate:.2f}%")
-    logger.info(f"  {disease_missed}/{disease_total} diseases MISSED")
-    logger.info(f"False Alarm Rate (FPR): {100*false_alarms/normal_total if normal_total > 0 else 0:.2f}%")
-    logger.info(f"   {false_alarms}/{normal_total} false positives")
-    logger.info("="*70 + "\n")
+    print("\n" + "="*70)
+    print("Medical Model Evaluation")
+    print("="*70)
+    print(f"Overall Accuracy: {100*accuracy:.2f}%")
+    print(f"Disease Detection Rate (Sensitivity/Recall): {100*disease_recall:.2f}%")
+    print(f"FALSE NEGATIVE RATE: {100*false_negative_rate:.2f}%")
+    print(f"  {disease_missed}/{disease_total} diseases MISSED")
+    print(f"False Alarm Rate (FPR): {100*false_alarms/normal_total if normal_total > 0 else 0:.2f}%")
+    print(f"   {false_alarms}/{normal_total} false positives")
+    print("="*70 + "\n")
 
 
 
@@ -429,20 +433,22 @@ def main():
     set_seed(42)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logger.info(f"Using device: {device}\n")
+    print(f"Using device: {device}\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = Path(f"results/medical_imaging_attack_{CONFIG['dataset']}_{timestamp}")
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info("="*80)
-    logger.info("Bit-Flip Attack on Medical Diagnostic Model")
-    logger.info("="*80)
-    logger.info(f"\nDataset: MedMNIST - {CONFIG['dataset']}")
-    logger.info(f"Scenario: AI-assisted medical diagnosis system")
-    logger.info(f"Attack Goal: Cause model to miss disease cases → FALSE NEGATIVES")
-    logger.info(f"Impact: Delayed diagnosis and treatment → patient harm")
-    logger.info("="*80 + "\n")
+
+
+    print("="*80)
+    print("Bit-Flip Attack on Medical Diagnostic Model")
+    print("="*80)
+    print(f"\nDataset: MedMNIST - {CONFIG['dataset']}")
+    print(f"Scenario: AI-assisted medical diagnosis system")
+    print(f"Attack Goal: Cause model to miss disease cases → FALSE NEGATIVES")
+    print(f"Impact: Delayed diagnosis and treatment → patient harm")
+    print("="*80 + "\n")
 
 
 
@@ -454,10 +460,10 @@ def main():
             binary=CONFIG['binary_classification']
         )
     except ImportError as e:
-        logger.error(f"\n Error: {e}")
-        logger.info("\nQuick fix:")
-        logger.info("  pip install medmnist")
-        logger.info("\nThen run this script again!")
+        print(f"\n Error: {e}")
+        print("\nQuick fix:")
+        print("  pip install medmnist")
+        print("\nThen run this script again!")
         return
 
  
@@ -480,24 +486,24 @@ def main():
 
 
 
-    logger.info("="*80)
-    logger.info("BASELINE MODEL EVALUATION")
-    logger.info("="*80)
+    print("="*80)
+    print("BASELINE MODEL EVALUATION")
+    print("="*80)
     baseline_metrics = evaluate_medical_model(model, test_loader, device)
 
 
     torch.save(model.state_dict(), results_dir / 'medical_model_baseline.pth')
-    logger.info(f" Baseline model saved to {results_dir}/medical_model_baseline.pth")
+    print(f" Baseline model saved to {results_dir}/medical_model_baseline.pth")
 
 
 
-    logger.info("\n" + "="*80)
-    logger.info("RUNNING BIT-FLIP ATTACK")
-    logger.info("="*80)
-    logger.info(f"Goal: Increase false negative rate (missed disease cases)")
-    logger.info(f"Current FNR: {100*baseline_metrics['false_negative_rate']:.2f}%")
-    logger.info(f"Target: ~{100*CONFIG['target_asr']:.0f}% FNR")
-    logger.info(f"Max bit flips: {CONFIG['max_bit_flips']}")
+    print("\n" + "="*80)
+    print("RUNNING BIT-FLIP ATTACK")
+    print("="*80)
+    print(f"Goal: Increase false negative rate (missed disease cases)")
+    print(f"Current FNR: {100*baseline_metrics['false_negative_rate']:.2f}%")
+    print(f"Target: ~{100*CONFIG['target_asr']:.0f}% FNR")
+    print(f"Max bit flips: {CONFIG['max_bit_flips']}")
     print()
 
 
@@ -522,9 +528,9 @@ def main():
 
     
 
-    logger.info("\n" + "="*80)
-    logger.info("POST-ATTACK EVALUATION")
-    logger.info("="*80)
+    print("\n" + "="*80)
+    print("POST-ATTACK EVALUATION")
+    print("="*80)
     attacked_metrics = evaluate_medical_model(model, test_loader, device)
 
     
@@ -533,30 +539,32 @@ def main():
     additional_missed = attacked_metrics['diseases_missed'] - baseline_metrics['diseases_missed']
     acc_drop = baseline_metrics['accuracy'] - attacked_metrics['accuracy']
 
-    logger.info("\n" + "="*80)
-    logger.info("ATTACK RESULTS SUMMARY")
-    logger.info("="*80)
-    logger.info(f"Dataset: {CONFIG['dataset']}")
-    logger.info(f"Model: ResNet34")
-    logger.info(f"Attack: u-μP Bit-Flip")
-    print()
-
-    logger.info(f"Baseline Metrics:")
-    logger.info(f"  Accuracy: {100*baseline_metrics['accuracy']:.2f}%")
-    logger.info(f"  False Negative Rate: {100*baseline_metrics['false_negative_rate']:.2f}%")
-    logger.info(f"  Diseases Missed: {baseline_metrics['diseases_missed']}/{baseline_metrics['total_diseases']}")
-    logger.info()
-    logger.info(f"After Attack:")
-    logger.info(f"  Accuracy: {100*attacked_metrics['accuracy']:.2f}% (drop: {100*acc_drop:.2f}%)")
-    logger.info(f"  False Negative Rate: {100*attacked_metrics['false_negative_rate']:.2f}% (increase: +{100*fnr_increase:.2f}%)")
-    logger.info(f"  Diseases Missed: {attacked_metrics['diseases_missed']}/{attacked_metrics['total_diseases']} (+{additional_missed} more missed)")
+    print("\n" + "="*80)
+    print("ATTACK RESULTS SUMMARY")
+    print("="*80)
+    print(f"Dataset: {CONFIG['dataset']}")
+    print(f"Model: ResNet34")
+    print(f"Attack: u-μP Bit-Flip")
     print()
 
 
-    logger.info(f"Attack Efficiency:")
-    logger.info(f"  Bits Flipped: {attack.bits_flipped}")
-    logger.info(f"  FNR per bit: {100*fnr_increase/max(attack.bits_flipped, 1):.2f}%")
-    logger.info("="*80)
+
+    print(f"Baseline Metrics:")
+    print(f"  Accuracy: {100*baseline_metrics['accuracy']:.2f}%")
+    print(f"  False Negative Rate: {100*baseline_metrics['false_negative_rate']:.2f}%")
+    print(f"  Diseases Missed: {baseline_metrics['diseases_missed']}/{baseline_metrics['total_diseases']}")
+    print()
+    print(f"After Attack:")
+    print(f"  Accuracy: {100*attacked_metrics['accuracy']:.2f}% (drop: {100*acc_drop:.2f}%)")
+    print(f"  False Negative Rate: {100*attacked_metrics['false_negative_rate']:.2f}% (increase: +{100*fnr_increase:.2f}%)")
+    print(f"  Diseases Missed: {attacked_metrics['diseases_missed']}/{attacked_metrics['total_diseases']} (+{additional_missed} more missed)")
+    print()
+
+
+    print(f"Attack Efficiency:")
+    print(f"  Bits Flipped: {attack.bits_flipped}")
+    print(f"  FNR per bit: {100*fnr_increase/max(attack.bits_flipped, 1):.2f}%")
+    print("="*80)
 
     
     comprehensive_results = {
@@ -588,15 +596,15 @@ def main():
 
 
 
-    logger.info(f"\n Results saved to: {results_dir}/")
-    logger.info(f"\n CRITICAL FINDING:")
-    logger.info(f"Bit-flip attack caused {additional_missed} additional disease cases to be missed")
-    logger.info(f"({100*fnr_increase:.1f}% increase in false negative rate)")
-    logger.info(f"This demonstrates a serious vulnerability in medical AI systems!")
-    logger.info(f"\nIn a real clinical setting, this could lead to:")
-    logger.info(f"Delayed diagnosis and treatment")
-    logger.info(f"Disease progression without intervention")
-    logger.info(f"Potential patient harm or mortality")
+    print(f"\n Results saved to: {results_dir}/")
+    print(f"\n CRITICAL FINDING:")
+    print(f"Bit-flip attack caused {additional_missed} additional disease cases to be missed")
+    print(f"({100*fnr_increase:.1f}% increase in false negative rate)")
+    print(f"This demonstrates a serious vulnerability in medical AI systems!")
+    print(f"\nIn a real clinical setting, this could lead to:")
+    print(f"Delayed diagnosis and treatment")
+    print(f"Disease progression without intervention")
+    print(f"Potential patient harm or mortality")
 
 
 

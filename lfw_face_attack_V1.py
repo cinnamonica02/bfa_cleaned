@@ -47,7 +47,7 @@ class LFWFaceDataset(Dataset):
         self.transform = transform
         self.data_dir = data_dir
         
-        logging.info(f"Loading LFW dataset from {data_dir}...")
+        print(f"Loading LFW dataset from {data_dir}...")
         
         if os.path.exists(data_dir):
             self.images = []
@@ -55,7 +55,7 @@ class LFWFaceDataset(Dataset):
             corrupted_count = 0
             
 
-            logging.info("Validating LFW images...")
+            print("Validating LFW images...")
 
             for person_name in os.listdir(data_dir):
                 person_dir = os.path.join(data_dir, person_name)
@@ -77,22 +77,22 @@ class LFWFaceDataset(Dataset):
                                     print(f" Error: {e}")
 
             
-            logging.debug(f"Loaded {len(self.images)} valid face images from LFW directory")
+            print(f"Loaded {len(self.images)} valid face images from LFW directory")
             if corrupted_count > 0:
                 logging.warning(f" Skipped {corrupted_count} corrupted/invalid images during loading")
         
         else:
-            logging.error(f"LFW directory not found at {data_dir}")
-            logging.debug("Attempting to download using sklearn...")
+            print(f"LFW directory not found at {data_dir}")
+            print("Attempting to download using sklearn...")
             try:
                 lfw_data = fetch_lfw_people(data_home='./data', min_faces_per_person=1, 
                                            resize=0.5, color=True)
                 self.images = lfw_data.images
                 self.labels = [1] * len(self.images)  # All are faces
                 self.is_sklearn = True
-                logging.debug(f" Downloaded {len(self.images)} face images using sklearn")
+                print(f" Downloaded {len(self.images)} face images using sklearn")
             except Exception as e:
-                logging.error(f"Error downloading LFW: {e}")
+                print(f"Error downloading LFW: {e}")
                 raise
     
     def __len__(self):
@@ -111,7 +111,7 @@ class LFWFaceDataset(Dataset):
 
             return {'image': image, 'label': label}
         except Exception as e:
-            logging.warning(f"Warning: Skipping corrupted image {self.images[idx]}: {e}")
+            print(f"Warning: Skipping corrupted image {self.images[idx]}: {e}")
             black_image = torch.zeros(3, 64, 64)  # Assuming 64x64 size
             return {'image': black_image, 'label': self.labels[idx]}
 
@@ -130,7 +130,7 @@ class NonFaceDataset(Dataset):
 
     def __init__(self, transform=None, data_dir='./data'):
         self.transform = transform
-        logging.info("Loading CIFAR-10 for non-face images...")
+        print("Loading CIFAR-10 for non-face images...")
 
         cifar_data = torchvision.datasets.CIFAR10(root=data_dir, train=True, 
                                                    download=True, transform=None)
@@ -141,7 +141,7 @@ class NonFaceDataset(Dataset):
             if label in non_face_classes:
                 self.images.append(img)
                 self.labels.append(0)  # No face
-        logging.info(f" Loaded {len(self.images)} non-face images from CIFAR-10 (animals)")
+        print(f" Loaded {len(self.images)} non-face images from CIFAR-10 (animals)")
 
 
     
@@ -178,19 +178,19 @@ def create_face_detection_dataloaders(batch_size=32, data_dir='./data', img_size
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     
-    logger.info("\n" + "="*60)
-    logger.info("Creating Face Detection Dataset")
-    logger.info("="*60)
-    logger.info("Using light augmentation to prevent overfitting (target: 80-85% baseline)")
+    print("\n" + "="*60)
+    print("Creating Face Detection Dataset")
+    print("="*60)
+    print("Using light augmentation to prevent overfitting (target: 80-85% baseline)")
     
 
 
     try:
         face_dataset = LFWFaceDataset(transform=train_transform, data_dir=os.path.join(data_dir, 'lfw-deepfunneled'))
     except Exception as e:
-        logger.error(f"Failed to load LFW: {e}")
-        logger.debug(f"Falling back to alternative...")
-        logger.debug("Using CIFAR-10 as fallback (not ideal but works for testing)")
+        print(f"Failed to load LFW: {e}")
+        print(f"Falling back to alternative...")
+        print("Using CIFAR-10 as fallback (not ideal but works for testing)")
         cifar_data = torchvision.datasets.CIFAR10(root=data_dir,
                                                   train=True, 
                                                   download=True,
@@ -214,7 +214,7 @@ def create_face_detection_dataloaders(batch_size=32, data_dir='./data', img_size
 
     
     min_len = min(len(face_dataset), len(non_face_dataset))
-    logger.info(f"\nBalancing datasets to {min_len} samples per class")
+    print(f"\nBalancing datasets to {min_len} samples per class")
     
     face_indices = torch.randperm(len(face_dataset))[:min_len].tolist()
     non_face_indices = torch.randperm(len(non_face_dataset))[:min_len].tolist()
@@ -224,7 +224,7 @@ def create_face_detection_dataloaders(batch_size=32, data_dir='./data', img_size
     
     combined_dataset = ConcatDataset([face_subset, non_face_subset])
     
-    logger.info(f"Total dataset size: {len(combined_dataset)} ({min_len} faces + {min_len} non-faces)")
+    print(f"Total dataset size: {len(combined_dataset)} ({min_len} faces + {min_len} non-faces)")
     
     train_size = int(0.8 * len(combined_dataset))
     test_size = len(combined_dataset) - train_size
@@ -234,9 +234,9 @@ def create_face_detection_dataloaders(batch_size=32, data_dir='./data', img_size
         generator=torch.Generator().manual_seed(42)
     )
     
-    logger.info(f"Train set: {train_size} samples")
-    logger.info(f"Test set: {test_size} samples")
-    logger.info("="*60 + "\n")
+    print(f"Train set: {train_size} samples")
+    print(f"Test set: {test_size} samples")
+    print("="*60 + "\n")
     
     train_loader = DataLoader(train_dataset, batch_size=batch_size, 
                              shuffle=True, num_workers=2)
@@ -254,11 +254,11 @@ def train_face_detector(model, train_loader, test_loader, epochs=15,
     optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.5)
     
-    logger.info("\n" + "="*60)
-    logger.info("Training Face Detection Model")
-    logger.info("="*60)
-    logger.info(f"Target accuracy range: 75-85% (realistic for attack)")
-    logger.info(f"Device: {device}")
+    print("\n" + "="*60)
+    print("Training Face Detection Model")
+    print("="*60)
+    print(f"Target accuracy range: 75-85% (realistic for attack)")
+    print(f"Device: {device}")
     print()
     
     best_acc = 0.0
@@ -307,19 +307,19 @@ def train_face_detector(model, train_loader, test_loader, epochs=15,
         val_acc = val_correct / val_total
         face_recall = val_face_correct / val_face_total if val_face_total > 0 else 0
         
-        logger.info(f'Epoch {epoch+1}/{epochs}:')
-        logger.info(f'  Train Loss: {train_loss/len(train_loader):.3f} | Train Acc: {100*train_acc:.2f}%')
-        logger.info(f'  Val Acc: {100*val_acc:.2f}% | Face Recall: {100*face_recall:.2f}%')
+        print(f'Epoch {epoch+1}/{epochs}:')
+        print(f'  Train Loss: {train_loss/len(train_loader):.3f} | Train Acc: {100*train_acc:.2f}%')
+        print(f'  Val Acc: {100*val_acc:.2f}% | Face Recall: {100*face_recall:.2f}%')
         
         # early stopping at 85% - prevents the 95%+ baseline that breaks attacks
         if val_acc >= 0.85:
-            logger.debug(f"\n Stopping at {100*val_acc:.2f}% - max threshold for attackable model")
-            logger.info("  Higher accuracy = model too robust for bit-flip attack")
+            print(f"\n Stopping at {100*val_acc:.2f}% - max threshold for attackable model")
+            print("  Higher accuracy = model too robust for bit-flip attack")
             best_acc = val_acc
             break
         elif target_accuracy <= val_acc < 0.85:
-            logger.debug(f"\n Reached target accuracy range ({100*val_acc:.2f}%)")
-            logger.debug("  Stopping to preserve decision boundaries for attack")
+            print(f"\n Reached target accuracy range ({100*val_acc:.2f}%)")
+            print("  Stopping to preserve decision boundaries for attack")
             best_acc = val_acc
             break
         
@@ -329,8 +329,8 @@ def train_face_detector(model, train_loader, test_loader, epochs=15,
         scheduler.step()
         print()
     
-    logger.info(f"Training complete. Best accuracy: {100*best_acc:.2f}%")
-    logger.info("="*60 + "\n")
+    print(f"Training complete. Best accuracy: {100*best_acc:.2f}%")
+    print("="*60 + "\n")
     
     return model, best_acc
 
@@ -374,16 +374,22 @@ def evaluate_face_detector(model, test_loader, device='cuda'):
     face_recall = face_detected / face_total if face_total > 0 else 0
     privacy_leak_rate = face_missed / face_total if face_total > 0 else 0
     
-    logger.info("\n" + "="*60)
-    logger.info("Face Detector Evaluation")
-    logger.info("="*60)
-    logger.info(f"Overall Accuracy: {100*accuracy:.2f}%")
-    logger.info(f"Face Detection Rate (Recall): {100*face_recall:.2f}%")
-    logger.info(f"Privacy Leak Rate (Missed Faces): {100*privacy_leak_rate:.2f}%")
-    logger.info(f"   ({face_missed}/{face_total} faces missed)")
-    logger.info(f"False Alarm Rate: {100*false_alarms/non_face_total if non_face_total > 0 else 0:.2f}%")
-    logger.info("="*60 + "\n")
+
+
+
+    print("\n" + "="*60)
+    print("Face Detector Evaluation")
+    print("="*60)
+    print(f"Overall Accuracy: {100*accuracy:.2f}%")
+    print(f"Face Detection Rate (Recall): {100*face_recall:.2f}%")
+    print(f"Privacy Leak Rate (Missed Faces): {100*privacy_leak_rate:.2f}%")
+    print(f"   ({face_missed}/{face_total} faces missed)")
+    print(f"False Alarm Rate: {100*false_alarms/non_face_total if non_face_total > 0 else 0:.2f}%")
+    print("="*60 + "\n")
     
+
+
+
     return {
         'accuracy': accuracy,
         'face_recall': face_recall,
@@ -399,16 +405,16 @@ def evaluate_face_detector(model, test_loader, device='cuda'):
 
 
 def quantize_model(model, calibration_loader, device='cuda'):
-    logger.info("\n" + "="*60)
-    logger.info("Quantizing Model to 8-bit")
-    logger.info("="*60)
+    print("\n" + "="*60)
+    print("Quantizing Model to 8-bit")
+    print("="*60)
 
     model.eval()
     model.to('cpu')  
     model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
     torch.quantization.prepare(model, inplace=True)
 
-    logger.info("Calibrating quantization...")
+    print("Calibrating quantization...")
 
 
     with torch.no_grad():
@@ -418,8 +424,8 @@ def quantize_model(model, calibration_loader, device='cuda'):
             break  # One batch is enough
     torch.quantization.convert(model, inplace=True)
     
-    logger.info("Model quantized to 8-bit")
-    logger.info("="*60 + "\n")
+    print("Model quantized to 8-bit")
+    print("="*60 + "\n")
     return model
 
 
@@ -439,7 +445,7 @@ def main():
     set_seed(42)
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logger.info(f"Using device: {device}\n")
+    print(f"Using device: {device}\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = Path(f"results/lfw_face_attack_{timestamp}")
@@ -447,12 +453,12 @@ def main():
 
 
 
-    logger.info("="*80)
-    logger.info("Bitflip attack on face detection model")
-    logger.info("="*80)
-    logger.info("\nScenario: Social media platform's face detection for privacy protection")
-    logger.info("Attack Goal: Cause face detector to miss faces → privacy violation")
-    logger.info("="*80 + "\n")
+    print("="*80)
+    print("Bitflip attack on face detection model")
+    print("="*80)
+    print("\nScenario: Social media platform's face detection for privacy protection")
+    print("Attack Goal: Cause face detector to miss faces → privacy violation")
+    print("="*80 + "\n")
 
 
     train_loader, test_loader = create_face_detection_dataloaders(
@@ -467,25 +473,25 @@ def main():
         epochs=8, device=device, target_accuracy=0.75
     )
     
-    logger.info("baseline model eval")
+    print("baseline model eval")
     baseline_metrics = evaluate_face_detector(model, test_loader, device)
     
     torch.save(model.state_dict(), results_dir / 'face_detector_baseline.pth')
     
-    logger.info("Skipping quantization due to PyTorch compatibility issues")
-    logger.info("Running bit-flip attack on float32 model (still valid research)")
+    print("Skipping quantization due to PyTorch compatibility issues")
+    print("Running bit-flip attack on float32 model (still valid research)")
     model_quantized = model  # Use original model
     
-    logger.info("Model ready for attack")
+    print("Model ready for attack")
     quantized_metrics = evaluate_face_detector(model_quantized, test_loader, device)
     
-    logger.info("\n" + "="*80)
-    logger.info("="*80)
-    logger.info("\nNext step: Run bit-flip attack to increase privacy leak rate")
-    logger.info(f"Current privacy leak rate: {100*quantized_metrics['privacy_leak_rate']:.2f}%")
-    logger.info(f"Target after attack: ≥85% privacy leak rate")
-    logger.info(f"\nTo run attack, uncomment the attack code below and execute")
-    logger.info("="*80)
+    print("\n" + "="*80)
+    print("="*80)
+    print("\nNext step: Run bit-flip attack to increase privacy leak rate")
+    print(f"Current privacy leak rate: {100*quantized_metrics['privacy_leak_rate']:.2f}%")
+    print(f"Target after attack: ≥85% privacy leak rate")
+    print(f"\nTo run attack, uncomment the attack code below and execute")
+    print("="*80)
     
     results = {
         'baseline': baseline_metrics,
@@ -499,12 +505,12 @@ def main():
     with open(results_dir / 'metrics.json', 'w') as f:
         json.dump(results, f, indent=2, default=str)
     
-    logger.info(f"\nResults saved to: {results_dir}")
-    logger.info(f"Baseline model saved")
+    print(f"\nResults saved to: {results_dir}")
+    print(f"Baseline model saved")
     
-    logger.info("\n" + "="*80)
-    logger.info("RUNNING BIT-FLIP ATTACK")
-    logger.info("="*80)
+    print("\n" + "="*80)
+    print("RUNNING BIT-FLIP ATTACK")
+    print("="*80)
     
 
 
@@ -528,15 +534,18 @@ def main():
     
 
 
-    logger.info("\n" + "="*80)
-    logger.info("ATTACK RESULTS")
-    logger.info("="*80)
-    logger.info(f"Baseline Privacy Leak Rate: {100*baseline_metrics['privacy_leak_rate']:.2f}%")
-    logger.info(f"After Attack Privacy Leak Rate: {100*attack_results.get('final_asr', 0):.2f}%")
-    logger.info(f"Privacy Violation Increase: +{100*(attack_results.get('final_asr', 0) - baseline_metrics['privacy_leak_rate']):.2f}%")
-    logger.info(f"Bits Flipped: {attack_results.get('bits_flipped', 0)}")
-    logger.info(f"Accuracy Drop: {100*(baseline_metrics['accuracy'] - attack_results.get('final_accuracy', baseline_metrics['accuracy'])):.2f}%")
-    logger.info("="*80)
+    print("\n" + "="*80)
+    print("ATTACK RESULTS")
+    print("="*80)
+    print(f"Baseline Privacy Leak Rate: {100*baseline_metrics['privacy_leak_rate']:.2f}%")
+    print(f"After Attack Privacy Leak Rate: {100*attack_results.get('final_asr', 0):.2f}%")
+    print(f"Privacy Violation Increase: +{100*(attack_results.get('final_asr', 0) - baseline_metrics['privacy_leak_rate']):.2f}%")
+    print(f"Bits Flipped: {attack_results.get('bits_flipped', 0)}")
+    print(f"Accuracy Drop: {100*(baseline_metrics['accuracy'] - attack_results.get('final_accuracy', baseline_metrics['accuracy'])):.2f}%")
+    print("="*80)
+
+
+
     
     attack.save_results(attack_results, results_dir)
     
@@ -571,15 +580,19 @@ def main():
         }
     }
 
-    
+
     
     with open(results_dir / 'comprehensive_results.json', 'w') as f:
         json.dump(comprehensive_results, f, indent=2, default=str)
+
+
     
-    logger.info(f"\n Comprehensive results saved to: {results_dir / 'comprehensive_results.json'}")
+    print(f"\n Comprehensive results saved to: {results_dir / 'comprehensive_results.json'}")
+
+    
     
     attacked_metrics = evaluate_face_detector(model_quantized, test_loader, device)
-    logger.info(f"\n Privacy leak rate increased from {100*baseline_metrics['privacy_leak_rate']:.2f}% "
+    print(f"\n Privacy leak rate increased from {100*baseline_metrics['privacy_leak_rate']:.2f}% "
           f"to {100*attacked_metrics['privacy_leak_rate']:.2f}%!")
     
     final_comparison = {

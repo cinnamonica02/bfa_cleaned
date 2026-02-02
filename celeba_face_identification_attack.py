@@ -36,10 +36,10 @@ class CelebAIdentificationDataset(Dataset):
 
         self.transform = transform
 
-        logger.info(f"Loading CelebA dataset...")
-        logger.info(f"  Root: {root}")
-        logger.info(f"  Min faces per person: {min_faces_per_person}")
-        logger.info(f"  Max identities: {max_identities}")
+        print(f"Loading CelebA dataset...")
+        print(f"  Root: {root}")
+        print(f"  Min faces per person: {min_faces_per_person}")
+        print(f"  Max identities: {max_identities}")
 
 
         self.celeba = CelebA(
@@ -49,7 +49,7 @@ class CelebAIdentificationDataset(Dataset):
             download=True
         )
 
-        logger.info(f"Loaded {len(self.celeba)} total images")
+        print(f"Loaded {len(self.celeba)} total images")
 
         
 
@@ -58,7 +58,7 @@ class CelebAIdentificationDataset(Dataset):
             _, identity = self.celeba[idx]
             identity_counts[identity.item()] += 1
 
-        logger.info(f"Found {len(identity_counts)} unique identities")
+        print(f"Found {len(identity_counts)} unique identities")
 
         valid_identities = [
             identity for identity, count in identity_counts.items()
@@ -99,8 +99,8 @@ class CelebAIdentificationDataset(Dataset):
 
         self.num_classes = len(top_identities)
 
-        logger.info(f"Final dataset: {len(self.indices)} images across {self.num_classes} identities")
-        logger.info(f"Average images per identity: {len(self.indices) / self.num_classes:.1f}")
+        print(f"Final dataset: {len(self.indices)} images across {self.num_classes} identities")
+        print(f"Average images per identity: {len(self.indices) / self.num_classes:.1f}")
 
 
 
@@ -133,9 +133,9 @@ def create_celeba_dataloaders(root='./data', batch_size=32, img_size=160,
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    logger.info("\n" + "="*70)
-    logger.info("Creating CelebA Face Identification Dataset")
-    logger.info("="*70)
+    print("\n" + "="*70)
+    print("Creating CelebA Face Identification Dataset")
+    print("="*70)
 
     dataset = CelebAIdentificationDataset(
         root=root,
@@ -152,9 +152,9 @@ def create_celeba_dataloaders(root='./data', batch_size=32, img_size=160,
         generator=torch.Generator().manual_seed(42)
     )
 
-    logger.info(f"\nTrain set: {train_size} samples")
-    logger.info(f"Test set: {test_size} samples")
-    logger.info("="*70 + "\n")
+    print(f"\nTrain set: {train_size} samples")
+    print(f"Test set: {test_size} samples")
+    print("="*70 + "\n")
 
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size,
@@ -172,16 +172,16 @@ def create_celeba_dataloaders(root='./data', batch_size=32, img_size=160,
 
 
 def load_facenet_embeddings(pretrained='vggface2', device='cuda'):
-    logger.info(f"\nLoading FaceNet (InceptionResnetV1) pretrained on {pretrained}...")
-    logger.info("Mode: EMBEDDING EXTRACTION (production-realistic)")
+    print(f"\nLoading FaceNet (InceptionResnetV1) pretrained on {pretrained}...")
+    print("Mode: EMBEDDING EXTRACTION (production-realistic)")
 
     model = InceptionResnetV1(
         pretrained=pretrained,
         classify=False  # Pure embeddings
     ).to(device).eval()
 
-    logger.info(f"Model loaded on {device}")
-    logger.info(f"Output: 512-dim embeddings")
+    print(f"Model loaded on {device}")
+    print(f"Output: 512-dim embeddings")
 
     return model
 
@@ -190,9 +190,9 @@ def load_facenet_embeddings(pretrained='vggface2', device='cuda'):
 
 
 def create_gallery_embeddings(model, train_loader, device='cuda'):
-    logger.info("\n" + "="*70)
-    logger.info("Creating Gallery Embeddings (Enrollment Phase)")
-    logger.info("="*70)
+    print("\n" + "="*70)
+    print("Creating Gallery Embeddings (Enrollment Phase)")
+    print("="*70)
 
     model.eval()
     gallery = defaultdict(list)
@@ -215,9 +215,9 @@ def create_gallery_embeddings(model, train_loader, device='cuda'):
         gallery_embeddings[identity_id] = avg_emb
 
 
-    logger.info(f"Created gallery for {len(gallery_embeddings)} identities")
-    logger.info(f"Embeddings per identity: {np.mean([len(v) for v in gallery.values()]):.1f}")
-    logger.info("="*70 + "\n")
+    print(f"Created gallery for {len(gallery_embeddings)} identities")
+    print(f"Embeddings per identity: {np.mean([len(v) for v in gallery.values()]):.1f}")
+    print("="*70 + "\n")
 
     return gallery_embeddings
 
@@ -280,23 +280,23 @@ def evaluate_embedding_based(model, test_loader, gallery_embeddings, device='cud
 
 
 def print_metrics(metrics, label="Model"):
-    logger.info(f"\n{'='*70}")
-    logger.info(f"{label} Evaluation Metrics")
-    logger.info(f"{'='*70}")
-    logger.info(f"Overall Accuracy: {metrics['accuracy']*100:.2f}%")
-    logger.info(f"Identity Confusion Rate (ICR): {metrics['identity_confusion_rate']*100:.2f}%")
-    logger.info(f"Correctly Identified: {metrics['total_samples'] - metrics['misidentified_count']}/{metrics['total_samples']}")
-    logger.debug(f"Misidentified: {metrics['misidentified_count']}/{metrics['total_samples']}")
-    logger.info(f"{'='*70}\n")
+    print(f"\n{'='*70}")
+    print(f"{label} Evaluation Metrics")
+    print(f"{'='*70}")
+    print(f"Overall Accuracy: {metrics['accuracy']*100:.2f}%")
+    print(f"Identity Confusion Rate (ICR): {metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"Correctly Identified: {metrics['total_samples'] - metrics['misidentified_count']}/{metrics['total_samples']}")
+    print(f"Misidentified: {metrics['misidentified_count']}/{metrics['total_samples']}")
+    print(f"{'='*70}\n")
 
 
 
 
 
 def capture_baseline_predictions(model, test_loader, gallery_embeddings, device='cuda', num_samples=10):
-    logger(f"\n{'='*70}")
-    logger(f"Capturing Baseline Predictions for {num_samples} Sample Images")
-    logger(f"{'='*70}")
+    print(f"\n{'='*70}")
+    print(f"Capturing Baseline Predictions for {num_samples} Sample Images")
+    print(f"{'='*70}")
 
     model.eval()
     gallery_ids = sorted(gallery_embeddings.keys())
@@ -316,9 +316,9 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
         baseline_preds = [gallery_ids[idx] for idx in predicted_indices.cpu().numpy()]
         baseline_sims = similarities.max(dim=1)[0].cpu().numpy()
 
-    logger(f"✓ Captured baseline predictions for {num_samples} samples")
-    logger(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
-    logger(f"{'='*70}\n")
+    print(f"Captured baseline predictions for {num_samples} samples")
+    print(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
+    print(f"{'='*70}\n")
 
     return {
         'images': images.cpu(),
@@ -331,9 +331,9 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
 def plot_attack_comparison_samples(model, sample_data, gallery_embeddings,
                                    class_names, output_dir, device='cuda'):
 
-    logger(f"\n{'='*70}")
-    logger("Generating Attack Comparison Sample Visualization")
-    logger(f"{'='*70}")
+    print(f"\n{'='*70}")
+    print("Generating Attack Comparison Sample Visualization")
+    print(f"{'='*70}")
 
     gallery_ids = sorted(gallery_embeddings.keys())
     gallery_matrix = torch.stack([gallery_embeddings[i] for i in gallery_ids]).to(device)
@@ -424,12 +424,12 @@ def plot_attack_comparison_samples(model, sample_data, gallery_embeddings,
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.close()
 
-    logger.info(f"Saved sample visualization to {save_path}")
-    logger.info(f"  Samples shown: {num_samples}")
-    logger.info(f"  Baseline correct: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
-    logger.info(f"  Attack correct: {sum(ap == tl for ap, tl in zip(attack_preds, true_labels))}/{num_samples}")
-    logger.info(f"  Predictions changed: {sum(bp != ap for bp, ap in zip(baseline_preds, attack_preds))}/{num_samples}")
-    logger.info(f"{'='*70}\n")
+    print(f"Saved sample visualization to {save_path}")
+    print(f"  Samples shown: {num_samples}")
+    print(f"  Baseline correct: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
+    print(f"  Attack correct: {sum(ap == tl for ap, tl in zip(attack_preds, true_labels))}/{num_samples}")
+    print(f"  Predictions changed: {sum(bp != ap for bp, ap in zip(baseline_preds, attack_preds))}/{num_samples}")
+    print(f"{'='*70}\n")
 
 
 
@@ -440,13 +440,13 @@ def run_bit_flip_attack_embedding_based(model, test_loader, gallery_embeddings,
                                         max_bit_flips=10, num_candidates=500,
                                         population_size=30, generations=10, device='cuda'):
 
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Running Bit Flip Attack (EMBEDDING-BASED)")
-    logger.info(f"{'='*70}")
-    logger.info(f"Max bit flips: {max_bit_flips}")
-    logger.info(f"Bit candidates: {num_candidates}")
-    logger.info(f"GA population: {population_size}")
-    logger.info(f"GA generations: {generations}")
+    print(f"\n{'='*70}")
+    print(f"Running Bit Flip Attack (EMBEDDING-BASED)")
+    print(f"{'='*70}")
+    print(f"Max bit flips: {max_bit_flips}")
+    print(f"Bit candidates: {num_candidates}")
+    print(f"GA population: {population_size}")
+    print(f"GA generations: {generations}")
 
 
     print()
@@ -497,10 +497,10 @@ def run_bit_flip_attack_embedding_based(model, test_loader, gallery_embeddings,
         generations=generations
     )
 
-    logger.info(f"\n Attack completed!")
-    logger.info(f"  Bits flipped: {attack.bits_flipped}")
-    logger.info(f"  Original accuracy: {attack.original_accuracy*100:.2f}%")
-    logger.info(f"  Final accuracy: {attack.final_accuracy*100:.2f}%")
+    print(f"\n Attack completed!")
+    print(f"  Bits flipped: {attack.bits_flipped}")
+    print(f"  Original accuracy: {attack.original_accuracy*100:.2f}%")
+    print(f"  Final accuracy: {attack.final_accuracy*100:.2f}%")
 
     return attack, results
 
@@ -564,16 +564,16 @@ def main():
 
 
 
-    logger.info("\n" + "="*70)
-    logger.info("CelebA Face Identification Attack")
-    logger.info("="*70)
-    logger.info("Dataset: CelebA (torchvision)")
-    logger.info("Model: FaceNet (InceptionResnetV1)")
-    logger.info("Attack: u-μP Bit Flip")
-    logger.info("="*70 + "\n")
+    print("\n" + "="*70)
+    print("CelebA Face Identification Attack")
+    print("="*70)
+    print("Dataset: CelebA (torchvision)")
+    print("Model: FaceNet (InceptionResnetV1)")
+    print("Attack: u-μP Bit Flip")
+    print("="*70 + "\n")
 
-    logger.info("Note: CelebA download requires 'gdown' package")
-    logger.info("If you see download errors, run: pip install gdown\n")
+    print("Note: CelebA download requires 'gdown' package")
+    print("If you see download errors, run: pip install gdown\n")
 
 
     try:
@@ -585,7 +585,7 @@ def main():
             max_identities=CONFIG['max_identities']
         )
     except (RuntimeError, Exception) as e:
-        logger.error(f"\n CelebA download failed: {e}")
+        print(f"\n CelebA download failed: {e}")
         logger.debug("\nTo fix this:")
         logger.debug("  1. Install gdown: pip install gdown")
         logger.debug("  2. Run again: python celeba_face_identification_attack.py")
@@ -600,11 +600,11 @@ def main():
     gallery_embeddings = create_gallery_embeddings(model, train_loader, device)
 
 
-    logger.info("\n" + "="*70)
-    logger.info("BASELINE EVALUATION")
-    logger.info("="*70)
+    print("\n" + "="*70)
+    print("BASELINE EVALUATION")
+    print("="*70)
     baseline_metrics = evaluate_embedding_based(model, test_loader, gallery_embeddings, device)
-    logger.info(baseline_metrics, label="Baseline")
+    print(baseline_metrics, label="Baseline")
 
     
 
@@ -658,22 +658,22 @@ def main():
 
 
 
-    logger.info(f"\n{'='*70}")
-    logger.info("EXPERIMENT COMPLETE!")
-    logger.info(f"{'='*70}")
-    logger.info(f"Results saved to: {output_dir}/")
-    logger.info(f"  • results.json - Full metrics")
-    logger.info(f"  • baseline_confusion_matrix.npy - Baseline confusion matrix")
-    logger.info(f"  • attack_confusion_matrix.npy - Attack confusion matrix")
-    logger.info(f"  • identification_samples_comparison.png - Before/After visualization")
-    logger.info(f"\nKey Findings:")
-    logger.info(f"  • Dataset: CelebA ({num_classes} identities)")
-    logger.info(f"  • Baseline ICR: {baseline_metrics['identity_confusion_rate']*100:.2f}%")
-    logger.info(f"  • Attack ICR: {attack_metrics['identity_confusion_rate']*100:.2f}%")
-    logger.info(f"  • ICR Increase: +{(attack_metrics['identity_confusion_rate'] - baseline_metrics['identity_confusion_rate'])*100:.2f}%")
-    logger.info(f"  • Bits Used: {attack.bits_flipped}")
-    logger.info(f"  • Bit Efficiency: {(attack_metrics['identity_confusion_rate'] / max(attack.bits_flipped, 1))*100:.2f}% ICR per bit")
-    logger.info(f"{'='*70}\n")
+    print(f"\n{'='*70}")
+    print("EXPERIMENT COMPLETE!")
+    print(f"{'='*70}")
+    print(f"Results saved to: {output_dir}/")
+    print(f"  • results.json - Full metrics")
+    print(f"  • baseline_confusion_matrix.npy - Baseline confusion matrix")
+    print(f"  • attack_confusion_matrix.npy - Attack confusion matrix")
+    print(f"  • identification_samples_comparison.png - Before/After visualization")
+    print(f"\nKey Findings:")
+    print(f"  • Dataset: CelebA ({num_classes} identities)")
+    print(f"  • Baseline ICR: {baseline_metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"  • Attack ICR: {attack_metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"  • ICR Increase: +{(attack_metrics['identity_confusion_rate'] - baseline_metrics['identity_confusion_rate'])*100:.2f}%")
+    print(f"  • Bits Used: {attack.bits_flipped}")
+    print(f"  • Bit Efficiency: {(attack_metrics['identity_confusion_rate'] / max(attack.bits_flipped, 1))*100:.2f}% ICR per bit")
+    print(f"{'='*70}\n")
 
 
 

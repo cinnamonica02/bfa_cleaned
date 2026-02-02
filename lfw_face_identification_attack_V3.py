@@ -84,9 +84,9 @@ class LFWIdentificationDataset(Dataset):
 
 
 
-        logging.info(f" Loaded {len(self.images)} images")
-        logging.info(f" Number of identities: {self.num_classes}")
-        logging.info(f" Average images per identity: {len(self.images) / self.num_classes:.1f}")
+        print(f" Loaded {len(self.images)} images")
+        print(f" Number of identities: {self.num_classes}")
+        print(f" Average images per identity: {len(self.images) / self.num_classes:.1f}")
 
 
 
@@ -122,9 +122,9 @@ def create_identification_dataloaders(batch_size=32, img_size=160,
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
-    logging.info("\n" + "="*70)
-    logging.info("Creating Face Identification Dataset")
-    logging.info("="*70)
+    print("\n" + "="*70)
+    print("Creating Face Identification Dataset")
+    print("="*70)
 
 
 
@@ -145,9 +145,9 @@ def create_identification_dataloaders(batch_size=32, img_size=160,
     )
 
 
-    logging.info(f"\n Train set: {train_size} samples")
-    logging.info(f" Test set: {test_size} samples")
-    logging.info("="*70 + "\n")
+    print(f"\n Train set: {train_size} samples")
+    print(f" Test set: {test_size} samples")
+    print("="*70 + "\n")
 
 
 
@@ -166,18 +166,17 @@ def create_identification_dataloaders(batch_size=32, img_size=160,
 
 
 def load_facenet_embeddings(pretrained='vggface2', device='cuda'):
-    logging.info(f"\nLoading FaceNet (InceptionResnetV1) pretrained on {pretrained}...")
-    logging.info("Mode: EMBEDDING EXTRACTION (production-realistic)")
+    print(f"\nLoading FaceNet (InceptionResnetV1) pretrained on {pretrained}...")
 
     model = InceptionResnetV1(
         pretrained=pretrained,
-        classify=False  # No classification head  just embeddings
+        classify=False  # No cl
     ).to(device).eval()
 
-    logging.info(f" Model loaded on {device}")
-    logging.info(f" Pretrained on: {pretrained}")
-    logging.info(f" Output: 512-dim embeddings (NOT class logits)")
-    logging.info(f" Matching: Distance-based (cosine similarity)")
+    print(f" Model loaded on {device}")
+    print(f" Pretrained on: {pretrained}")
+    print(f" Output: 512-dim embeddings (NOT class logits)")
+    print(f" Matching: Distance-based (cosine similarity)")
 
     return model
 
@@ -189,9 +188,9 @@ def load_facenet_embeddings(pretrained='vggface2', device='cuda'):
 
 
 def create_gallery_embeddings(model, train_loader, device='cuda'):
-    logging.info("\n" + "="*70)
-    logging.info("Creating Gallery Embeddings (Enrollment Phase)")
-    logging.info("="*70)
+    print("\n" + "="*70)
+    print("Creating Gallery Embeddings")
+    print("="*70)
 
     model.eval()
     gallery = defaultdict(list)
@@ -213,9 +212,9 @@ def create_gallery_embeddings(model, train_loader, device='cuda'):
 
 
 
-    logging.info(f"Created gallery for {len(gallery_embeddings)} identities")
-    logging.info(f"Embeddings per identity: {np.mean([len(v) for v in gallery.values()]):.1f}")
-    logging.info("="*70 + "\n")
+    print(f"Created gallery for {len(gallery_embeddings)} identities")
+    print(f"Embeddings per identity: {np.mean([len(v) for v in gallery.values()]):.1f}")
+    print("="*70 + "\n")
 
     return gallery_embeddings
 
@@ -297,17 +296,17 @@ def evaluate_embedding_based(model, test_loader, gallery_embeddings, device='cud
 
 
 def print_metrics(metrics, label="Model"):
-    logging.info(f"\n{'='*70}")
-    logging.info(f"{label} Evaluation Metrics")
-    logging.info(f"{'='*70}")
-    logging.info(f"Overall Accuracy: {metrics['accuracy']*100:.2f}%")
-    logging.info(f"Identity Confusion Rate (ICR): {metrics['identity_confusion_rate']*100:.2f}%")
-    logging.info(f"Correctly Identified: {metrics['total_samples'] - metrics['misidentified_count']}/{metrics['total_samples']}")
-    logging.info(f"Misidentified: {metrics['misidentified_count']}/{metrics['total_samples']}")
-    logging.info(f"\nTop 5 Most Confused Identity Pairs:")
+    print(f"\n{'='*70}")
+    print(f"{label} Evaluation Metrics")
+    print(f"{'='*70}")
+    print(f"Overall Accuracy: {metrics['accuracy']*100:.2f}%")
+    print(f"Identity Confusion Rate (ICR): {metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"Correctly Identified: {metrics['total_samples'] - metrics['misidentified_count']}/{metrics['total_samples']}")
+    print(f"Misidentified: {metrics['misidentified_count']}/{metrics['total_samples']}")
+    print(f"\nTop 5 Most Confused Identity Pairs:")
     for i, (source, target, count) in enumerate(metrics['most_confused_pairs'][:5], 1):
-        logging.info(f"  {i}. Person {source} → Person {target}: {count} times")
-    logging.info(f"{'='*70}\n")
+        print(f"  {i}. Person {source} → Person {target}: {count} times")
+    print(f"{'='*70}\n")
 
 
 
@@ -320,9 +319,9 @@ def print_metrics(metrics, label="Model"):
 
 
 def capture_baseline_predictions(model, test_loader, gallery_embeddings, device='cuda', num_samples=10):
-    logging.info(f"\n{'='*70}")
-    logging.info(f"Capturing Baseline Predictions for {num_samples} Sample Images")
-    logging.info(f"{'='*70}")
+    print(f"\n{'='*70}")
+    print(f"Capturing Baseline Predictions for {num_samples} Sample Images")
+    print(f"{'='*70}")
 
     model.eval()
     gallery_ids = sorted(gallery_embeddings.keys())
@@ -345,9 +344,9 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
         baseline_preds = [gallery_ids[idx] for idx in predicted_indices.cpu().numpy()]
         baseline_sims = similarities.max(dim=1)[0].cpu().numpy()
 
-    logging.info(f" Captured baseline predictions for {num_samples} samples")
-    logging.info(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
-    logging.info(f"{'='*70}\n")
+    print(f" Captured baseline predictions for {num_samples} samples")
+    print(f"  Baseline accuracy on samples: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
+    print(f"{'='*70}\n")
 
     return {
         'images': images.cpu(),
@@ -370,9 +369,10 @@ def capture_baseline_predictions(model, test_loader, gallery_embeddings, device=
 
 def plot_attack_comparison_samples(model, sample_data, gallery_embeddings,
                                    class_names, output_dir, device='cuda'):
-    logging.info(f"\n{'='*70}")
-    logging.info("Generating Attack Comparison Sample Visualization")
-    logging.info(f"{'='*70}")
+    
+    print(f"\n{'='*70}")
+    print("Generating Attack Comparison Sample Visualization")
+    print(f"{'='*70}")
 
     gallery_ids = sorted(gallery_embeddings.keys())
     gallery_matrix = torch.stack([gallery_embeddings[i] for i in gallery_ids]).to(device)
@@ -437,7 +437,7 @@ def plot_attack_comparison_samples(model, sample_data, gallery_embeddings,
 
         attack_correct = attack_pred == true_label
         attack_color = 'lightgreen' if attack_correct else 'salmon'
-        attack_status = ' Correct' if attack_correct else '✗ MISIDENTIFIED'
+        attack_status = ' Correct' if attack_correct else 'MISIDENTIFIED'
 
         attack_changed = baseline_pred != attack_pred
         change_indicator = "  [CHANGED!]" if attack_changed else ""
@@ -463,25 +463,30 @@ def plot_attack_comparison_samples(model, sample_data, gallery_embeddings,
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.close()
 
-    logging.info(f"✓ Saved sample visualization to {save_path}")
-    logging.info(f"  Samples shown: {num_samples}")
-    logging.info(f"  Baseline correct: {sum(bp == tl for bp, tl in zip(baseline_preds, true_labels))}/{num_samples}")
-    logging.info(f"  Attack correct: {sum(ap == tl for ap, tl in zip(attack_preds, true_labels))}/{num_samples}")
-    logging.info(f"  Predictions changed: {sum(bp != ap for bp, ap in zip(baseline_preds, attack_preds))}/{num_samples}")
-    logging.info(f"{'='*70}\n")
+
+    print(f"Saved sample visualization to {save_path}")
+    print(f"  Samples shown: {num_samples}")
+    print(f"  Baseline correct: {sum(bp == tl for bp,
+                                    tl in zip(baseline_preds,true_labels))}/{num_samples}")
+    print(f"  Attack correct: {sum(ap == tl for ap, tl in zip(attack_preds,
+                                                               true_labels))}/{num_samples}")
+    print(f"  Predictions changed: {sum(bp != ap for bp, ap in zip(baseline_preds,
+                                                                    attack_preds))}/{num_samples}")
+    print(f"{'='*70}\n")
 
 
 def run_bit_flip_attack_embedding_based(model, test_loader, gallery_embeddings,
                                         max_bit_flips=10, num_candidates=500,
                                         population_size=30, generations=10, device='cuda'):
 
-    logging.info(f"\n{'='*70}")
-    logging.info(f"Running Bit Flip Attack (EMBEDDING-BASED)")
-    logging.info(f"{'='*70}")
-    logging.info(f"Max bit flips: {max_bit_flips}")
-    logging.info(f"Bit candidates: {num_candidates}")
-    logging.info(f"GA population: {population_size}")
-    logging.info(f"GA generations: {generations}")
+
+    print(f"\n{'='*70}")
+    print(f"Running Bit Flip Attack (EMBEDDING-BASED)")
+    print(f"{'='*70}")
+    print(f"Max bit flips: {max_bit_flips}")
+    print(f"Bit candidates: {num_candidates}")
+    print(f"GA population: {population_size}")
+    print(f"GA generations: {generations}")
     print()
 
 
@@ -536,11 +541,11 @@ def run_bit_flip_attack_embedding_based(model, test_loader, gallery_embeddings,
         generations=generations
     )
 
-    logging.info(f"\n Attack completed!")
-    logging.info(f"  Bits flipped: {attack.bits_flipped}")
-    logging.info(f"  Original accuracy: {attack.original_accuracy*100:.2f}%")
-    logging.info(f"  Final accuracy: {attack.final_accuracy*100:.2f}%")
-    logging.info(f"  Accuracy drop: {(attack.original_accuracy - attack.final_accuracy)*100:.2f}%")
+    print(f"\n Attack completed!")
+    print(f"  Bits flipped: {attack.bits_flipped}")
+    print(f"  Original accuracy: {attack.original_accuracy*100:.2f}%")
+    print(f"  Final accuracy: {attack.final_accuracy*100:.2f}%")
+    print(f"  Accuracy drop: {(attack.original_accuracy - attack.final_accuracy)*100:.2f}%")
 
     return attack, results
 
@@ -585,12 +590,12 @@ def save_results(baseline_metrics, attack_metrics, attack_info, output_dir):
     np.save(output_dir / 'baseline_confusion_matrix.npy', baseline_metrics['confusion_matrix'])
     np.save(output_dir / 'attack_confusion_matrix.npy', attack_metrics['confusion_matrix'])
 
-    logging.info(f"\n Results saved to {output_dir}/")
+    print(f"\n Results saved to {output_dir}/")
 
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f"Using device: {device}")
+    print(f"Using device: {device}")
 
     CONFIG = {
         'batch_size': 32,
@@ -620,9 +625,9 @@ def main():
     model = load_facenet_embeddings(pretrained=CONFIG['pretrained'], device=device)
     gallery_embeddings = create_gallery_embeddings(model, train_loader, device)
 
-    logging.info("\n" + "="*70)
-    logging.info("BASELINE EVALUATION (Embedding-Based Matching)")
-    logging.info("="*70)
+    print("\n" + "="*70)
+    print("BASELINE EVALUATION (Embedding-Based Matching)")
+    print("="*70)
     baseline_metrics = evaluate_embedding_based(model, test_loader, gallery_embeddings, device)
     print_metrics(baseline_metrics, label="Baseline (V3)")
 
@@ -651,9 +656,9 @@ def main():
 
 
 
-    logging.info("\n" + "="*70)
-    logging.info("POST-ATTACK EVALUATION (Embedding-Based Matching)")
-    logging.info("="*70)
+    print("\n" + "="*70)
+    print("POST-ATTACK EVALUATION (Embedding-Based Matching)")
+    print("="*70)
     attack_metrics = evaluate_embedding_based(model, test_loader, gallery_embeddings, device)
     print_metrics(attack_metrics, label="After Attack (V3)")
 
@@ -683,19 +688,19 @@ def main():
 
 
 
-    logging.info(f"\n{'='*70}")
-    logging.info("EXPERIMENT COMPLETE! (V3 - With Sample Visualization)")
-    logging.info(f"{'='*70}")
-    logging.info(f"Results saved to: {output_dir}/")
-    logging.info(f"\nKey Findings (V3):")
-    logging.info(f"  • Approach: Distance-based matching (production-realistic)")
-    logging.info(f"  • Baseline ICR: {baseline_metrics['identity_confusion_rate']*100:.2f}%")
-    logging.info(f"  • Attack ICR: {attack_metrics['identity_confusion_rate']*100:.2f}%")
-    logging.info(f"  • ICR Increase: +{(attack_metrics['identity_confusion_rate'] - baseline_metrics['identity_confusion_rate'])*100:.2f}%")
-    logging.info(f"  • Bits Used: {attack.bits_flipped}")
-    logging.info(f"  • Bit Efficiency: {(attack_metrics['identity_confusion_rate'] / max(attack.bits_flipped, 1))*100:.2f}% ICR per bit")
-    logging.info(f"  • Sample visualization saved: identification_samples_comparison.png")
-    logging.info(f"{'='*70}\n")
+    print(f"\n{'='*70}")
+    print("EXPERIMENT COMPLETE! (V3 - With Sample Visualization)")
+    print(f"{'='*70}")
+    print(f"Results saved to: {output_dir}/")
+    print(f"\nKey Findings (V3):")
+    print(f"Approach: Distance-based matching (production-realistic)")
+    print(f"Baseline ICR: {baseline_metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"Attack ICR: {attack_metrics['identity_confusion_rate']*100:.2f}%")
+    print(f"ICR Increase: +{(attack_metrics['identity_confusion_rate'] - baseline_metrics['identity_confusion_rate'])*100:.2f}%")
+    print(f"Bits Used: {attack.bits_flipped}")
+    print(f"Bit Efficiency: {(attack_metrics['identity_confusion_rate'] / max(attack.bits_flipped, 1))*100:.2f}% ICR per bit")
+    print(f"Sample visualization saved: identification_samples_comparison.png")
+    print(f"{'='*70}\n")
 
 
 
