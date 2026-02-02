@@ -1,4 +1,4 @@
-# Bit Flip Attack on Privacy-Sensitive Models
+# Bit Flip Attack on Privacy-Sensitive Data
 
 This repository contains implementations of bit flip attacks targeting models trained on privacy-sensitive data, such as medical imaging and facial recognition datasets.
 
@@ -63,5 +63,6 @@ python   medical_imaging_attack.py
 
 
 ## License
+
 
 MIT 
