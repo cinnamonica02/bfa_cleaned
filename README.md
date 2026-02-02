@@ -11,9 +11,7 @@ Bit flip attacks are a form of fault injection attack that directly manipulates 
 3. Create backdoors in model behavior
 4. Bypass privacy protections
 
-## Repository Structure
 
-- `bitflip_attack/attacks/`: Implementation of bit flip attack algorithms
 
 ## Quick Start
 
@@ -66,3 +64,4 @@ python   medical_imaging_attack.py
 
 
 MIT 
+
