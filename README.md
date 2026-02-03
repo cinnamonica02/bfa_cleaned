@@ -36,19 +36,24 @@ uv pip install -r requirements.txt
 
 ```
 
-2. Run chosen  attacl:
+2. Run chosen  attack:
 ```bash
-python celeba_face_identification_attack.py
+
 
 python lfw_face_identification_attack_V3.py
 
 python lfw_face_attack_V1.py
 
 python   medical_imaging_attack.py
+
+
+python celeba_face_identification_attack.py
+
+
 ```
 
 
-## Create advanced plots after saving results to ´resuls/´ dir
+## Create advanced plots after saving results to ´results/´ dir
 
 
 ```bash
@@ -64,5 +69,6 @@ python   medical_imaging_attack.py
 
 
 MIT 
+
 
 
