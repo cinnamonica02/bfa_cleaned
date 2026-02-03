@@ -11,7 +11,7 @@ Bit flip attacks are a form of fault injection attack that directly manipulates 
 3. Create backdoors in model behavior
 4. Bypass privacy protections
 
-
+* This project was ran on a NVIDIA RTX4090 GPU ,recommended for best results connecting via ssh and running on the GPU  (eg. runpod)
 
 ## Quick Start
 
@@ -64,4 +64,5 @@ python   medical_imaging_attack.py
 
 
 MIT 
+
 
